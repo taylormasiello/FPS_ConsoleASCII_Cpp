@@ -16,12 +16,13 @@ int nScreenHeight = 40; //rows
 int nMapHeight = 16;
 int nMapWidth = 16;
 
-float fPlayerX = 8.0f; //x pos, starting in mid of room (8,8)
-float fPlayerY = 8.0f; //y pos
+float fPlayerX = 14.5f; //x pos, starting in mid of room (8,8)
+float fPlayerY = 5.0f; //y pos
 float fPlayerA = 0.0f; //angle player is looking at 
 
 float fFOV = 3.14159 / 4.0;
 float fDepth = 16.0f; 
+float fSpeed = 5.0f;
 
 int main()
 {
@@ -70,36 +71,36 @@ int main()
 		//Handle CCW Rotation
 		//Win function to see state of any key; 0x8000 is asking "is the highest bit of that key there? if yes, key pressed"
 		if (GetAsyncKeyState((unsigned short)'A') & 0x8000)
-			fPlayerA -= (0.8f) * fElapsedTime; //rotate counter-clockwise (decrease player angle); fElapsedTime for consistent movement experience
+			fPlayerA -= (fSpeed * 0.75f) * fElapsedTime; //rotate counter-clockwise (decrease player angle); fElapsedTime for consistent movement experience
 
 		if (GetAsyncKeyState((unsigned short)'D') & 0x8000)
-			fPlayerA += (0.8f) * fElapsedTime; //rotate clockwise (increase player angle)
+			fPlayerA += (fSpeed * 0.75f) * fElapsedTime; //rotate clockwise (increase player angle)
 
 		//take prev calculated unit vetctor, multiplies it providing a magnitude (to move player), multiplied by fElapsedTime moves player consistently over frames
 		if (GetAsyncKeyState((unsigned short)'W') & 0x8000)
 		{
-			fPlayerX += sinf(fPlayerA) * 5.0f * fElapsedTime; //addition to move forward
-			fPlayerY += cosf(fPlayerA) * 5.0f * fElapsedTime;
+			fPlayerX += sinf(fPlayerA) * fSpeed * fElapsedTime;; //addition to move forward
+			fPlayerY += cosf(fPlayerA) * fSpeed * fElapsedTime;; //2nd ; means an "empty expression"
 
 			//collision detection
 			//converts player current coordinates into integer space and tests on map array; 1.0f == player in top left cell of map (cell 1)
 			if (map[(int)fPlayerY * nMapWidth + (int)fPlayerX] == '#')
 			{
-				fPlayerX -= sinf(fPlayerA) * 5.0f * fElapsedTime; //"undoes" movement input (stops player) if hits a wall
-				fPlayerY -= cosf(fPlayerA) * 5.0f * fElapsedTime;
+				fPlayerX -= sinf(fPlayerA) * fSpeed * fElapsedTime;; //"undoes" movement input (stops player) if hits a wall
+				fPlayerY -= cosf(fPlayerA) * fSpeed * fElapsedTime;;
 			}
 		}
 
 		if (GetAsyncKeyState((unsigned short)'S') & 0x8000)
 		{
-			fPlayerX -= sinf(fPlayerA) * 5.0f * fElapsedTime; //subtraction to move backward
-			fPlayerY -= cosf(fPlayerA) * 5.0f * fElapsedTime;
+			fPlayerX -= sinf(fPlayerA) * fSpeed * fElapsedTime;; //subtraction to move backward
+			fPlayerY -= cosf(fPlayerA) * fSpeed * fElapsedTime;;
 
 			//collision detection
 			if (map[(int)fPlayerY * nMapWidth + (int)fPlayerX] == '#')
 			{
-				fPlayerX += sinf(fPlayerA) * 5.0f * fElapsedTime; //"undoes" movement input (stops player) if hits a wall
-				fPlayerY += cosf(fPlayerA) * 5.0f * fElapsedTime; 
+				fPlayerX += sinf(fPlayerA) * fSpeed * fElapsedTime;; //"undoes" movement input (stops player) if hits a wall
+				fPlayerY += cosf(fPlayerA) * fSpeed * fElapsedTime;;
 			}
 		}
 
@@ -115,7 +116,9 @@ int main()
 			float fRayAngle = (fPlayerA - fFOV / 2.0f) + ((float)x / (float)nScreenWidth) * fFOV;
 
 			//ray tracing by measuring incremental small distances from player until ray collides with wall block tile (increment "lands inside a wall" tile)
-			float fDistanceToWall = 0;
+			float fStepSize = 0.1f;	   //increment size for ray casting, decrease to increase
+			float fDistanceToWall = 0; //resolution
+
 			bool bHitWall = false;
 			bool bBoundary = false;
 
@@ -125,7 +128,7 @@ int main()
 
 			while (!bHitWall && fDistanceToWall < fDepth) //sets boundaries to avoid never hitting a wall
 			{
-				fDistanceToWall += 0.1f;
+				fDistanceToWall += fStepSize;
 
 				//creating a line of a given distance, using unit vector^
 				int nTestX = (int)(fPlayerX + fEyeX * fDistanceToWall); //extends unit vector to the length currently checking for
@@ -140,7 +143,7 @@ int main()
 				else
 				{
 					//Ray is inbounds so test to see if the ray cell is a wall block, individually
-					if (map[nTestY * nMapWidth + nTestX] == '#') //converts 2D system into 1D for array; y coor * mapWidth + X, if contains # then have hit wall
+					if (map.c_str()[nTestX * nMapWidth + nTestY] == '#') //converts 2D system into 1D for array; y coor * mapWidth + X, if contains # then have hit wall
 					{
 						bHitWall = true; //fDistanceToWall will contain last value it had, as this loop will exit
 
