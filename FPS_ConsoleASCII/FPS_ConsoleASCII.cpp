@@ -35,15 +35,15 @@ int main()
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"#..............#";
+	map += L"#..........#...#";
+	map += L"#..........#...#";
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"#..............#";
-	map += L"#..............#";
-	map += L"#..............#";
-	map += L"#..............#";
+	map += L"#.......########";
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"################";
@@ -152,7 +152,18 @@ int main()
 				else if (y > nCeiling && y <= nFloor) //must be wall; shade as '#' like map
 					screen[y * nScreenWidth + x] = nShade;
 				else //if neither ceiling nor wall, must be floor; shade as ' '
-					screen[y * nScreenWidth + x] = ' ';
+				{
+					//Shade floor based on distance
+					//distance to floor remains constant, shading constantly based on proportion of how far floor can be seen
+					//using symbols to differentiate walls from floor, less confusing than using the same symbols
+					float b = 1.0f - (((float)y - nScreenHeight / 2.0f) / ((float)nScreenHeight / 2.0f));
+					if (b < 0.25)		nShade = '#'; //more "full and vibrant" symbol of set
+					else if (b < 0.5)	nShade = 'x';
+					else if (b < 0.75)	nShade = '.';
+					else if (b < 0.9)	nShade = '-'; //least "full and vibrant" symbol of set before floor cannot be seen
+					else				nShade = ' ';
+					screen[y * nScreenWidth + x] = nShade;
+				}
 			}
 
 		}
