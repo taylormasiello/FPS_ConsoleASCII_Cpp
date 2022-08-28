@@ -20,6 +20,7 @@ float fPlayerX = 14.5f; //x pos, starting in mid of room (8,8)
 float fPlayerY = 5.0f; //y pos
 float fPlayerA = 0.0f; //angle player is looking at 
 
+float pi = 3.14159;
 float fFOV = 3.14159 / 4.0;
 float fDepth = 16.0f; 
 float fSpeed = 5.0f;
@@ -79,28 +80,28 @@ int main()
 		//take prev calculated unit vetctor, multiplies it providing a magnitude (to move player), multiplied by fElapsedTime moves player consistently over frames
 		if (GetAsyncKeyState((unsigned short)'W') & 0x8000)
 		{
-			fPlayerX += sinf(fPlayerA) * fSpeed * fElapsedTime;; //addition to move forward
-			fPlayerY += cosf(fPlayerA) * fSpeed * fElapsedTime;; //2nd ; means an "empty expression"
+			fPlayerX += cosf(fPlayerA) * fSpeed * fElapsedTime;; //addition to move forward
+			fPlayerY += sinf(fPlayerA) * fSpeed * fElapsedTime;; //2nd ; means an "empty expression"
 
 			//collision detection
 			//converts player current coordinates into integer space and tests on map array; 1.0f == player in top left cell of map (cell 1)
 			if (map[(int)fPlayerY * nMapWidth + (int)fPlayerX] == '#')
 			{
-				fPlayerX -= sinf(fPlayerA) * fSpeed * fElapsedTime;; //"undoes" movement input (stops player) if hits a wall
-				fPlayerY -= cosf(fPlayerA) * fSpeed * fElapsedTime;;
+				fPlayerX -= cosf(fPlayerA) * fSpeed * fElapsedTime;; //"undoes" movement input (stops player) if hits a wall
+				fPlayerY -= sinf(fPlayerA) * fSpeed * fElapsedTime;;
 			}
 		}
 
 		if (GetAsyncKeyState((unsigned short)'S') & 0x8000)
 		{
-			fPlayerX -= sinf(fPlayerA) * fSpeed * fElapsedTime;; //subtraction to move backward
-			fPlayerY -= cosf(fPlayerA) * fSpeed * fElapsedTime;;
+			fPlayerX -= cosf(fPlayerA) * fSpeed * fElapsedTime;; //subtraction to move backward
+			fPlayerY -= sinf(fPlayerA) * fSpeed * fElapsedTime;;
 
 			//collision detection
 			if (map[(int)fPlayerY * nMapWidth + (int)fPlayerX] == '#')
 			{
-				fPlayerX += sinf(fPlayerA) * fSpeed * fElapsedTime;; //"undoes" movement input (stops player) if hits a wall
-				fPlayerY += cosf(fPlayerA) * fSpeed * fElapsedTime;;
+				fPlayerX += cosf(fPlayerA) * fSpeed * fElapsedTime;; //"undoes" movement input (stops player) if hits a wall
+				fPlayerY += sinf(fPlayerA) * fSpeed * fElapsedTime;;
 			}
 		}
 
@@ -123,8 +124,8 @@ int main()
 			bool bBoundary = false;
 
 			//to calculate the test point
-			float fEyeX = sinf(fRayAngle); //Unit Vector for ray in player space, representing direction player is looking in
-			float fEyeY = cosf(fRayAngle);
+			float fEyeX = cosf(fRayAngle); //Unit Vector for ray in player space, representing direction player is looking in
+			float fEyeY = sinf(fRayAngle);
 
 			while (!bHitWall && fDistanceToWall < fDepth) //sets boundaries to avoid never hitting a wall
 			{
@@ -227,10 +228,18 @@ int main()
 		for (int nx = 0; nx < nMapWidth; nx++)
 			for (int ny = 0; ny < nMapWidth; ny++)
 			{
-				screen[(ny + 1) & nScreenWidth + nx] = map[ny * nMapWidth + nx];
+				screen[(ny + 1)*nScreenWidth + nx] = map[ny * nMapWidth + nx];
 			}
 		//Player marker; based on int version of player coordinates
-		screen[((int)fPlayerX + 1) * nScreenWidth + (int)fPlayerY] = 'P';
+		//checks fPlayerA when looking the cardinal directions: down = 0, pi/2 = left, pi = up, and (3pi)/2 = right
+		//checks for what fPlayerA is closest to between four direction four values^
+		short playerMarker = ' ';
+		if (cosf(fPlayerA) > sinf(fPlayerA) && cosf(fPlayerA) > sinf(fPlayerA + pi)) playerMarker = 0x2190; //left
+		else if (sinf(fPlayerA + pi) > cosf(fPlayerA) && sinf(fPlayerA + pi) > cosf(fPlayerA + pi)) playerMarker = 0x2191; //up
+		else if (cosf(fPlayerA + pi) > sinf(fPlayerA + pi) && cosf(fPlayerA + pi) > sinf(fPlayerA)) playerMarker = 0x2192; //right
+		else playerMarker = 0x2193; //down
+
+		screen[((int)fPlayerY + 1) * nScreenWidth + (int)(nMapWidth - fPlayerX)] = playerMarker;
 
 		//To Write to Screen
 		screen[nScreenWidth * nScreenHeight - 1] = '\0'; //sets final char of array to esc, so it knows when to stop outputting the string 
