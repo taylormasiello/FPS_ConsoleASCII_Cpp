@@ -120,13 +120,23 @@ int main()
 			int nCeiling = (float)(nScreenHeight / 2.0) - nScreenHeight / ((float)fDistanceToWall);
 			int nFloor = nScreenHeight - nCeiling;
 
+			short nShade = ' '; 
+
+			//as working with and in console, will be using 'extended unicode ASCII' equivalent hex values for shading symobls
+			if (fDistanceToWall <= fDepth / 4.0f)		nShade = 0x2588; //player very close to wall, brigthest and most shaded character
+			else if (fDistanceToWall < fDepth / 3.0f)	nShade = 0x2593;
+			else if (fDistanceToWall < fDepth / 2.0f)	nShade = 0x2592;
+			else if (fDistanceToWall < fDepth)			nShade = 0x2591; //player far from wall, least bright and least shaded character
+			else										nShade = ' ';    //player too far from wall to see
+
+
 			//drawing into column
 			for (int y = 0; y < nScreenHeight; y++)
 			{
 				if (y < nCeiling) //current cell being drawn to must be part of ceiling; shade in sky as ' '
 					screen[y * nScreenWidth + x] = ' ';
 				else if (y > nCeiling && y <= nFloor) //must be wall; shade as '#' like map
-					screen[y * nScreenWidth + x] = '#';
+					screen[y * nScreenWidth + x] = nShade;
 				else //if neither ceiling nor wall, must be floor; shade as ' '
 					screen[y * nScreenWidth + x] = ' ';
 			}
