@@ -147,7 +147,6 @@ int main()
 					{
 						bHitWall = true; //fDistanceToWall will contain last value it had, as this loop will exit
 
-
 						//boundary detection; vector which accumlates all 4 corners of cell
 						vector<pair<float, float>> p; //distance to 'perfect corner', dot product (angle between the 2 vectors) to sort based on distance
 
@@ -171,7 +170,7 @@ int main()
 						//takes inverse cos of 2nd part of pair (dot product), gives angle between the 2 rays
 						//if less than fBound, can assume ray hit boundary of cell
 						//only need to test 2 or 3 as you'll never see all 4 corners of a cell in a "normal Cartesian space" projected normally
-						float fBound = 0.1;
+						float fBound = 0.01;
 						if (acos(p.at(0).second) < fBound) bBoundary = true;
 						if (acos(p.at(1).second) < fBound) bBoundary = true;
 						if (acos(p.at(2).second) < fBound) bBoundary = true;
