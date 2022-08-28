@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 using namespace std;
 
 #include <Windows.h>
@@ -7,8 +8,8 @@ using namespace std;
 int nScreenWidth = 120; //columns
 int nScreenHeight = 40; //rows
 
-float fPlayerX = 0.0f; //x pos
-float fPlayerY = 0.0f; //y pos
+float fPlayerX = 8.0f; //x pos, starting in mid of room (8,8)
+float fPlayerY = 8.0f; //y pos
 float fPlayerA = 0.0f; //angle player is looking at 
 
 //Map dimensions, 2D array; hash symbol for wall and period for an empty space
@@ -47,11 +48,28 @@ int main()
 	map += L"#..............#";
 	map += L"################";
 
+	//2 time points to measure duration  using chrono library
+	auto tp1 = chrono::system_clock::now();
+	auto tp2 = chrono::system_clock::now();
+
+
 	//Game Loop
 	while (1)
 	{
-		//as not considered with looking up and down, really a 2D problem, thus 2D arrays
-		//only need to be concerned with one axis, whichever is going across the screen
+		//find how fast one frame is, using that to augment variables for movement; gives consistent movement regardless of flutuating CPU resource useage
+		tp2 = chrono::system_clock::now(); //set tp2 to current time
+		chrono::duration<float> elapsedTime = tp2 - tp1; //calculate duration between tp2 (current systemTime) and tp1 (previous systemTime)
+		tp1 = tp2; //updating the previous time point (tp1) with current time point (tp2)
+		float fElapsedTime = elapsedTime.count(); //get elapsedTime as a float to make calculations easier
+
+		//Controls
+		//Handle CCW Rotation
+		//Win function to see state of any key; 0x8000 is asking "is the highest bit of that key there?" if yes, pressed
+		if (GetAsyncKeyState((unsigned short)'A') & 0x8000)
+			fPlayerA -= (0.1f) * fElapsedTime; //rotate counter-clockwise (decrease player angle); fElapsedTime for consistent movement experience
+
+		if (GetAsyncKeyState((unsigned short)'D') & 0x8000)
+			fPlayerA += (0.1f) * fElapsedTime; //rotate clockwise (increase player angle)
 
 		//tiles, player has limited FOV, mostly looking fwd; 
 		//algo takes each column of console (x), and relating that to a ray cast within the FOV; 120 columns, 120 rays cast into scene
@@ -76,7 +94,7 @@ int main()
 				fDistanceToWall += 0.1f;
 
 				//creating a line of a given distance, using unit vector^
-				int nTestX = (int)(fPlayerX + fEyeX * fDistanceToWall); //extends unit vector to the length that we're currently checking for
+				int nTestX = (int)(fPlayerX + fEyeX * fDistanceToWall); //extends unit vector to the length currently checking for
 				int nTestY = (int)(fPlayerY + fEyeY * fDistanceToWall); //can use int as edges of walls will be int; ex. cell at 1.5, we know it's 1, so can truncate
 
 				//Test if ray is out of bounds
@@ -94,6 +112,25 @@ int main()
 					}
 				}
 			}
+
+			//Calculate distance to ceiling and floor
+			//nCeiling, subtract a proportion of the screenHeight relative to distanceToWall from the midpoint
+			//as distanceToWall increases (subtraction gets smaller), thus a higher ceiling
+			//nFloor is a mirror of the ceiling
+			int nCeiling = (float)(nScreenHeight / 2.0) - nScreenHeight / ((float)fDistanceToWall);
+			int nFloor = nScreenHeight - nCeiling;
+
+			//drawing into column
+			for (int y = 0; y < nScreenHeight; y++)
+			{
+				if (y < nCeiling) //current cell being drawn to must be part of ceiling; shade in sky as ' '
+					screen[y * nScreenWidth + x] = ' ';
+				else if (y > nCeiling && y <= nFloor) //must be wall; shade as '#' like map
+					screen[y * nScreenWidth + x] = '#';
+				else //if neither ceiling nor wall, must be floor; shade as ' '
+					screen[y * nScreenWidth + x] = ' ';
+			}
+
 		}
 
 		//To Write to Screen
