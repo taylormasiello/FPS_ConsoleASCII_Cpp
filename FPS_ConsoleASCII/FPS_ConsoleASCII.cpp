@@ -1,8 +1,12 @@
-#include <iostream>
-#include <chrono>
 using namespace std;
 
+#include <iostream>
+#include <chrono>
 #include <Windows.h>
+#include <vector>
+#include <algorithm>
+#include <utility>
+#include <stdio.h>
 
 //setting console to known set of dimensions
 int nScreenWidth = 120; //columns
@@ -31,20 +35,20 @@ int main()
 	wstring map;
 
 	//using append symbol, can draw map line by line; easier to visualize and debug
-	map += L"################";
-	map += L"#..............#";
-	map += L"#..............#";
-	map += L"#..............#";
-	map += L"#..........#...#";
-	map += L"#..........#...#";
-	map += L"#..............#";
-	map += L"#..............#";
-	map += L"#..............#";
-	map += L"#..............#";
-	map += L"#..............#";
-	map += L"#..............#";
+	map += L"#########.......";
+	map += L"#...............";
 	map += L"#.......########";
 	map += L"#..............#";
+	map += L"#......##......#";
+	map += L"#......##......#";
+	map += L"#..............#";
+	map += L"###............#";
+	map += L"##.............#";
+	map += L"#......####..###";
+	map += L"#......#.......#";
+	map += L"#......#.......#";
+	map += L"#..............#";
+	map += L"#......#########";
 	map += L"#..............#";
 	map += L"################";
 
@@ -113,6 +117,7 @@ int main()
 			//ray tracing by measuring incremental small distances from player until ray collides with wall block tile (increment "lands inside a wall" tile)
 			float fDistanceToWall = 0;
 			bool bHitWall = false;
+			bool bBoundary = false;
 
 			//to calculate the test point
 			float fEyeX = sinf(fRayAngle); //Unit Vector for ray in player space, representing direction player is looking in
@@ -138,6 +143,36 @@ int main()
 					if (map[nTestY * nMapWidth + nTestX] == '#') //converts 2D system into 1D for array; y coor * mapWidth + X, if contains # then have hit wall
 					{
 						bHitWall = true; //fDistanceToWall will contain last value it had, as this loop will exit
+
+
+						//boundary detection; vector which accumlates all 4 corners of cell
+						vector<pair<float, float>> p; //distance to 'perfect corner', dot product (angle between the 2 vectors) to sort based on distance
+
+						for (int tx = 0; tx < 2; tx++) //4 corners per cell to test, so 2 tightly nested loops to give offsets
+							for (int ty = 0; ty < 2; ty++)
+							{
+								//creates vector from perfectCorner (int corners offset from player pos)
+								float vy = (float)nTestY + ty - fPlayerY;
+								float vx = (float)nTestX + tx - fPlayerX;
+								//calculate magnitue of vector^ to know how far corner is from player
+								float d = sqrt(vx*vx + vy*vy);
+								//calculate dot product (representation of angle between ray being cast and vector of perfectCorner)
+								float dot = (fEyeX * vx / d) + (fEyeY * vy / d);
+								//assemble into pair, push into vector
+								p.push_back(make_pair(d, dot));
+							}
+
+						//Sort Pairs from closest to farthest; sort(from beginning to end); lambda takes the 2 pairs and compares, sorting from closest point to furthest 
+						sort(p.begin(), p.end(), [](const pair<float, float> &left, const pair<float, float> &right) { return left.first < right.first; });
+												
+						//takes inverse cos of 2nd part of pair (dot product), gives angle between the 2 rays
+						//if less than fBound, can assume ray hit boundary of cell
+						//only need to test 2 or 3 as you'll never see all 4 corners of a cell in a "normal Cartesian space" projected normally
+						float fBound = 0.1;
+						if (acos(p.at(0).second) < fBound) bBoundary = true;
+						if (acos(p.at(1).second) < fBound) bBoundary = true;
+						if (acos(p.at(2).second) < fBound) bBoundary = true;
+
 					}
 				}
 			}
@@ -158,6 +193,7 @@ int main()
 			else if (fDistanceToWall < fDepth)			nShade = 0x2591; //player far from wall, least bright and least shaded character
 			else										nShade = ' ';    //player too far from wall to see
 
+			if (bBoundary)	nShade = ' '; //Black it out
 
 			//drawing into column
 			for (int y = 0; y < nScreenHeight; y++)
