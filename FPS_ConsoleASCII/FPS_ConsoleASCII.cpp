@@ -16,12 +16,12 @@ int nScreenHeight = 40; //rows
 int nMapHeight = 16;
 int nMapWidth = 16;
 
-float fPlayerX = 14.5f; //x pos, starting in mid of room (8,8)
-float fPlayerY = 5.0f; //y pos
+float fPlayerX = 7.0f; //x pos, starting in mid of room (8,8)
+float fPlayerY = 6.0f; //y pos
 float fPlayerA = 0.0f; //angle player is looking at 
 
 float pi = 3.14159;
-float fFOV = 3.14159 / 4.0;
+float fFOV = pi / 4.0;
 float fDepth = 16.0f; 
 float fSpeed = 5.0f;
 
@@ -40,15 +40,15 @@ int main()
 	map += L"#########.......";
 	map += L"#...............";
 	map += L"#.......########";
+	map += L"#.......##.....#";
+	map += L"#.....####.....#";
 	map += L"#..............#";
-	map += L"#......##......#";
-	map += L"#......##......#";
+	map += L"###..........###";
 	map += L"#..............#";
-	map += L"###............#";
-	map += L"##.............#";
-	map += L"#......####..###";
-	map += L"#......#.......#";
-	map += L"#......#.......#";
+	map += L"#..............#";
+	map += L"#.......########";
+	map += L"#..............#";
+	map += L"####...........#";
 	map += L"#..............#";
 	map += L"#......#########";
 	map += L"#..............#";
