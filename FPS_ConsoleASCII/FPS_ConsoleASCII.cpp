@@ -76,12 +76,27 @@ int main()
 		{
 			fPlayerX += sinf(fPlayerA) * 5.0f * fElapsedTime; //addition to move forward
 			fPlayerY += cosf(fPlayerA) * 5.0f * fElapsedTime;
+
+			//collision detection
+			//converts player current coordinates into integer space and tests on map array; 1.0f == player in top left cell of map (cell 1)
+			if (map[(int)fPlayerY * nMapWidth + (int)fPlayerX] == '#')
+			{
+				fPlayerX -= sinf(fPlayerA) * 5.0f * fElapsedTime; //"undoes" movement input (stops player) if hits a wall
+				fPlayerY -= cosf(fPlayerA) * 5.0f * fElapsedTime;
+			}
 		}
 
 		if (GetAsyncKeyState((unsigned short)'S') & 0x8000)
 		{
 			fPlayerX -= sinf(fPlayerA) * 5.0f * fElapsedTime; //subtraction to move backward
 			fPlayerY -= cosf(fPlayerA) * 5.0f * fElapsedTime;
+
+			//collision detection
+			if (map[(int)fPlayerY * nMapWidth + (int)fPlayerX] == '#')
+			{
+				fPlayerX += sinf(fPlayerA) * 5.0f * fElapsedTime; //"undoes" movement input (stops player) if hits a wall
+				fPlayerY += cosf(fPlayerA) * 5.0f * fElapsedTime; 
+			}
 		}
 
 
