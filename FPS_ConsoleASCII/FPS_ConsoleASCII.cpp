@@ -64,12 +64,26 @@ int main()
 
 		//Controls
 		//Handle CCW Rotation
-		//Win function to see state of any key; 0x8000 is asking "is the highest bit of that key there?" if yes, pressed
+		//Win function to see state of any key; 0x8000 is asking "is the highest bit of that key there? if yes, key pressed"
 		if (GetAsyncKeyState((unsigned short)'A') & 0x8000)
-			fPlayerA -= (0.1f) * fElapsedTime; //rotate counter-clockwise (decrease player angle); fElapsedTime for consistent movement experience
+			fPlayerA -= (0.8f) * fElapsedTime; //rotate counter-clockwise (decrease player angle); fElapsedTime for consistent movement experience
 
 		if (GetAsyncKeyState((unsigned short)'D') & 0x8000)
-			fPlayerA += (0.1f) * fElapsedTime; //rotate clockwise (increase player angle)
+			fPlayerA += (0.8f) * fElapsedTime; //rotate clockwise (increase player angle)
+
+		//take prev calculated unit vetctor, multiplies it providing a magnitude (to move player), multiplied by fElapsedTime moves player consistently over frames
+		if (GetAsyncKeyState((unsigned short)'W') & 0x8000)
+		{
+			fPlayerX += sinf(fPlayerA) * 5.0f * fElapsedTime; //addition to move forward
+			fPlayerY += cosf(fPlayerA) * 5.0f * fElapsedTime;
+		}
+
+		if (GetAsyncKeyState((unsigned short)'S') & 0x8000)
+		{
+			fPlayerX -= sinf(fPlayerA) * 5.0f * fElapsedTime; //subtraction to move backward
+			fPlayerY -= cosf(fPlayerA) * 5.0f * fElapsedTime;
+		}
+
 
 		//tiles, player has limited FOV, mostly looking fwd; 
 		//algo takes each column of console (x), and relating that to a ray cast within the FOV; 120 columns, 120 rays cast into scene
