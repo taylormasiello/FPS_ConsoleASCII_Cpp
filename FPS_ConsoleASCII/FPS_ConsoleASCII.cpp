@@ -12,13 +12,13 @@ using namespace std;
 int nScreenWidth = 120; //columns
 int nScreenHeight = 40; //rows
 
-float fPlayerX = 8.0f; //x pos, starting in mid of room (8,8)
-float fPlayerY = 8.0f; //y pos
-float fPlayerA = 0.0f; //angle player is looking at 
-
 //Map dimensions, 2D array; hash symbol for wall and period for an empty space
 int nMapHeight = 16;
 int nMapWidth = 16;
+
+float fPlayerX = 8.0f; //x pos, starting in mid of room (8,8)
+float fPlayerY = 8.0f; //y pos
+float fPlayerA = 0.0f; //angle player is looking at 
 
 float fFOV = 3.14159 / 4.0;
 float fDepth = 16.0f; 
@@ -185,7 +185,6 @@ int main()
 			int nFloor = nScreenHeight - nCeiling;
 
 			short nShade = ' '; 
-
 			//as working with and in console, will be using 'extended unicode ASCII' equivalent hex values for shading symobls
 			if (fDistanceToWall <= fDepth / 4.0f)		nShade = 0x2588; //player very close to wall, brigthest and most shaded character
 			else if (fDistanceToWall < fDepth / 3.0f)	nShade = 0x2593;
@@ -198,7 +197,7 @@ int main()
 			//drawing into column
 			for (int y = 0; y < nScreenHeight; y++)
 			{
-				if (y < nCeiling) //current cell being drawn to must be part of ceiling; shade in sky as ' '
+				if (y <= nCeiling) //current cell being drawn to must be part of ceiling; shade in sky as ' '
 					screen[y * nScreenWidth + x] = ' ';
 				else if (y > nCeiling && y <= nFloor) //must be wall; shade as '#' like map
 					screen[y * nScreenWidth + x] = nShade;
@@ -218,6 +217,18 @@ int main()
 			}
 
 		}
+
+		//Display Stats (default at 0,0); FPS (frequency=1/time)
+		swprintf_s(screen, 40, L"X=%3.2f, Y=%3.2f, A=%3.2f FPS=%3.2f ", fPlayerX, fPlayerY, fPlayerA, 1.0f / fElapsedTime);
+
+		//Display Map; goes through coordinates of map, directly puts them into screenBuffer; offest by 1 to not overwrite stats
+		for (int nx = 0; nx < nMapWidth; nx++)
+			for (int ny = 0; ny < nMapWidth; ny++)
+			{
+				screen[(ny + 1) & nScreenWidth + nx] = map[ny * nMapWidth + nx];
+			}
+		//Player marker; based on int version of player coordinates
+		screen[((int)fPlayerX + 1) * nScreenWidth + (int)fPlayerY] = 'P';
 
 		//To Write to Screen
 		screen[nScreenWidth * nScreenHeight - 1] = '\0'; //sets final char of array to esc, so it knows when to stop outputting the string 
